@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>YAML File Generator</title>
+    <style>
+      /* General Styling */
+      body {
+        font-family: "Arial", sans-serif;
+        background: linear-gradient(135deg, #f5f7fa, #89abe2);
+        color: #333;
+        padding: 20px;
+        text-align: center;
+      }
+
+      h1,
+      h2 {
+        color: #4a69bd;
+        text-transform: uppercase;
+      }
+
+      h3 {
+        color: #4a69bd;
+        font-size: 1.5em;
+      }
+
+      form,
+      .endpoints-section {
+        background-color: #ffffff;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+      }
+
+      label {
+        display: inline-block;
+        width: 150px;
+        text-align: left;
+        margin-right: 20px;
+      }
+
+      input,
+      textarea,
+      select {
+        padding: 10px;
+        border: 2px solid #dfe4ea;
+        border-radius: 5px;
+        width: 60%;
+        margin-bottom: 20px;
+        transition: border 0.3s ease;
+        text-align: left;
+      }
+
+      input:focus,
+      textarea:focus,
+      select:focus {
+        border-color: #1e3799;
+        outline: none;
+        text-align: left;
+      }
+
+      button {
+        background-color: #4a69bd;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        padding: 10px 20px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
+
+      button:hover {
+        background-color: #1e3799;
+      }
+
+      /* Animations */
+      #yamlDisplay {
+        background-color: #f8f9fa;
+        border: 2px solid #dfe4ea;
+        border-radius: 10px;
+        padding: 10px;
+        margin-top: 20px;
+        transition: all 0.3s ease-in-out;
+        height: 200px;
+        overflow-y: scroll;
+      }
+
+      /* Responsive Design */
+      @media (max-width: 768px) {
+        input,
+        textarea,
+        select {
+          width: 100%;
+          text-align: left;
+        }
+
+        label {
+          display: block;
+          text-align: center;
+        }
+      }
+
+      #authType {
+        max-width: 730.912px;
+        height: 39px;
+        padding: 10px;
+        border: 2px solid #1e3799;
+        border-radius: 5px;
+        transition: border 0.3s ease;
+        width: 100%;
+        box-sizing: border-box;
+      }
+
+      .tooltip {
+        position: relative;
+        display: inline-block;
+      }
+      .tooltip .tooltiptext {
+        visibility: hidden;
+        width: 220px;
+        background-color: #555;
+        color: #fff;
+        text-align: center;
+        border-radius: 6px;
+        padding: 5px;
+        position: absolute;
+        z-index: 1;
+        bottom: 125%; /* Adjust as needed */
+        left: 50%;
+        margin-left: -110px;
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+
+      .tooltip .tooltiptext::after {
+        content: "";
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        margin-left: -5px;
+        border-width: 5px;
+        border-style: solid;
+        border-color: #555 transparent transparent transparent;
+      }
+
+      .tooltip:hover .tooltiptext {
+        visibility: visible;
+        opacity: 1;
+      }
+
+      .info-icon {
+        font-size: 14px;
+        font-weight: bold;
+        color: #1e3799;
+        background-color: #e0e0e0;
+        border-radius: 50%;
+        padding: 2px 6px;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- <h1>YAML File Generator</h1>
+    <div class="container">
+        <h2>Upload Connector Config File To Edit</h2>
+        <input
+          type="file"
+          id="yaml-file-input"
+          accept=".yaml, .yml"
+          onchange="loadYamlFile(event)"
+        /> -->
+    <!-- Connector Properties Form -->
+    <h2>Connector Properties</h2>
+    <form id="connectorForm">
+      <label for="host">Host:</label>
+      <input type="text" id="host" placeholder="Enter Host" /><br />
+
+      <label for="port">Port:</label>
+      <input type="text" id="port" placeholder="Enter Port" /><br />
+
+      <label for="protocol">Protocol:</label>
+      <input type="text" id="protocol" placeholder="Enter Protocol" /><br />
+
+      <label for="maxConnections">Max Connections:</label>
+      <input
+        type="text"
+        id="maxConnections"
+        placeholder="Enter Max Connections"
+      /><br />
+
+      <label for="minConnections">Min Connections:</label>
+      <input
+        type="text"
+        id="minConnections"
+        placeholder="Enter Min Connections"
+      /><br />
+
+      <label for="authType">Auth Type:</label>
+      <select id="authType" onchange="updateAuthFields()">
+        <option value="">Select Auth Type</option>
+        <option value="basic">Basic</option>
+        <option value="token">Token</option>
+        <option value="header">Header</option></select
+      ><br />
+
+      <div id="authFields"></div>
+
+      <label for="headers"
+        >Headers (key: value):
+        <span class="tooltip">
+          <i class="info-icon">i</i>
+          <span class="tooltiptext">For multiple headers, add in new line</span>
+        </span></label
+      >
+      <textarea id="headers" placeholder="Enter headers"></textarea><br />
+
+      <br />
+      <label for="sslCert">SSL Cert:</label>
+      <input type="text" id="sslCert" placeholder="Enter SSL Cert" /><br />
+      <div style="padding-right: 35px">
+        <label for="debugEnabled">Debug Enabled:</label>
+        <input type="checkbox" id="debugEnabled" /><br />
+
+        <label for="logRequestBody">Log Request Body:</label>
+        <input type="checkbox" id="logRequestBody" /><br />
+
+        <label for="logResponseBody">Log Response Body:</label>
+        <input type="checkbox" id="logResponseBody" /><br />
+
+        <label for="logSuccessResponseBody">Log Success Response Body:</label>
+        <input type="checkbox" id="logSuccessResponseBody" /><br />
+      </div>
+    </form>
+
+    <!-- Endpoints Section -->
+    <h2>Endpoint Properties</h2>
+    <div class="endpoints-section" id="endpoints">
+      <!-- Endpoint dropdown to select and add different endpoints -->
+      <select id="endpointDropdown" onchange="navigateToEndpoint()">
+        <option value="" disabled selected>Select an Endpoint</option>
+        <option value="New endpoint">Add new endpoint</option>
+        <!-- <option value="Login">Login</option>
+            <option value="Network">Network</option>
+            <option value="TriggerAssetExport">Trigger Asset Export</option>
+            <option value="CheckAssetExportStatus">Check Asset Export Status</option>
+            <option value="FetchAssetExportChunk">Fetch Asset Export Chunk</option>
+            <option value="TriggerVulnExport">Trigger Vulnerability Export</option>
+            <option value="CheckVulnExportStatus">Check Vulnerability Export Status</option>
+            <option value="FetchVulnExportChunk">Fetch Vulnerability Export Chunk</option>
+            <option value="Scans">Scans</option>
+            <option value="Policies">Policies</option>
+            <option value="PolicyTemplates">Policy Templates</option>
+            <option value="Tags">Tags</option> -->
+      </select>
+      <!-- <button type="button" onclick="addEndpoint()">Add Endpoint</button>-->
+    </div>
+
+    <!-- YAML Display Section -->
+    <h3>GENERATED YAML</h3>
+    <textarea id="yamlDisplay"></textarea><br />
+
+    <button type="button" onclick="generateYAML()">Generate YAML</button>
+
+    <button type="button" onclick="downloadYAML()">Download YAML</button>
+
+    <div>
+      <h3>
+        <button onclick="history.back()">Back to Upload File Page</button>
+      </h3>
+    </div>
+
+    <script>
+      function loadYamlFile(event) {
+        const file = event.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            const yamlContent = e.target.result;
+            try {
+              // Parse the YAML content into a JavaScript object
+              const yamlObject = jsyaml.load(yamlContent);
+
+              // Populate the form fields with the parsed data
+              populateFormFields(yamlObject);
+            } catch (error) {
+              alert("Error parsing YAML file: " + error.message);
+            }
+          };
+          reader.readAsText(file);
+        }
+      }
+      function updateAuthFields() {
+        const authType = document.getElementById("authType").value;
+        let authFieldsHTML = "";
+
+        if (authType === "basic") {
+          authFieldsHTML = `
+                    <label for="username">Username:</label>
+                    <input type="text" id="username" placeholder="Enter Username"><br>
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" placeholder="Enter Password"><br>
+                `;
+        } else if (authType === "token") {
+          authFieldsHTML = `
+                    <label for="apiKey">API Key:</label>
+                    <input type="text" id="apiKey" placeholder="Enter API Key"><br>
+                `;
+        } else if (authType === "header") {
+          authFieldsHTML = `
+                    <label for="headerKey">Header Key:</label>
+                    <input type="text" id="headerKey" placeholder="Enter Header Key"><br>
+                    <label for="headerValue">Header Value:</label>
+                    <input type="text" id="headerValue" placeholder="Enter Header Value"><br>
+                `;
+        }
+
+        document.getElementById("authFields").innerHTML = authFieldsHTML;
+      }
+
+      // function addEndpoint() {
+      //     const dropdown = document.getElementById('endpointDropdown');
+      //     const selectedEndpoint = dropdown.value;
+      //     if (!selectedEndpoint) return; // Exit if no endpoint selected
+
+      //     const endpointsDiv = document.getElementById('endpoints');
+      //     if(selectedEndpoint==='New endpoint'){
+
+      //     }
+      //     else{
+      //     const endpointHtml = `
+      //         <div id="endpoint-${endpointIndex}">
+      //             <h3>${selectedEndpoint} Endpoint</h3>
+      //             <label for="path-${endpointIndex}">Path:</label>
+      //             <input type="text" id="path-${endpointIndex}" placeholder="Enter Path"><br>
+
+      //             <label for="headers-${endpointIndex}">Headers (key: value):</label>
+      //             <textarea id="headers-${endpointIndex}" placeholder="Enter Headers"></textarea><br>
+
+      //             <label for="method-${endpointIndex}">Method:</label>
+      //             <input type="text" id="method-${endpointIndex}" placeholder="Enter Method"><br>
+
+      //             <label for="contentType-${endpointIndex}">Content-Type:</label>
+      //             <input type="text" id="contentType-${endpointIndex}" placeholder="Enter Content-Type"><br>
+
+      //             <label for="maxRetry-${endpointIndex}">Max Retry:</label>
+      //             <input type="number" id="maxRetry-${endpointIndex}" placeholder="Enter Max Retry"><br>
+
+      //             <label for="retryDelayInMs-${endpointIndex}">Retry Delay in ms:</label>
+      //             <input type="number" id="retryDelayInMs-${endpointIndex}" placeholder="Enter Retry Delay in ms"><br>
+
+      //             <label for="retryStatusCodes-${endpointIndex}">Retry Status Codes:</label>
+      //             <input type="text" id="retryStatusCodes-${endpointIndex}" placeholder="Enter Retry Status Codes (comma separated)"><br>
+
+      //             <label for="retryWithDelayStatusCodes-${endpointIndex}">Retry with Delay Status Codes:</label>
+      //             <input type="text" id="retryWithDelayStatusCodes-${endpointIndex}" placeholder="Enter Retry with Delay Status Codes (comma separated)"><br>
+      //         </div>
+      //     `;
+      //     }
+      //     endpointsDiv.insertAdjacentHTML('beforeend', endpointHtml);
+      //     endpointIndex++;
+
+      // }
+
+      let endpointIndex = 0;
+      function addEndpoint() {
+        const dropdown = document.getElementById("endpointDropdown");
+        const selectedEndpoint = dropdown.value;
+
+        // Exit if no endpoint is selected
+        if (!selectedEndpoint) return;
+
+        const endpointsDiv = document.getElementById("endpoints");
+        let endpointName = selectedEndpoint;
+
+        // If "New Endpoint" is selected, prompt the user for a custom endpoint name
+        if (selectedEndpoint === "New endpoint") {
+          endpointName = prompt("Enter the name for the new endpoint:");
+
+          // Exit if the user didn't enter a valid name
+          if (!endpointName) return;
+        }
+        // Add the new endpoint to the dropdown
+        const newOption = document.createElement("option");
+        newOption.value = endpointName;
+        newOption.textContent = endpointName;
+        dropdown.appendChild(newOption);
+
+        // Create the editable form for the endpoint
+        const endpointHtml = `
+        <div id="endpoint-${endpointIndex}">
+            <h3>${endpointName}</h3>
+            <label for="path-${endpointIndex}">Path:</label>
+            <input type="text" id="path-${endpointIndex}" placeholder="Enter Path"><br>
+
+            <label for="headers-${endpointIndex}">Headers (key: value): <span class="tooltip">
+    <i class="info-icon">i</i>
+    <span class="tooltiptext">For multiple headers, add in new line</span>
+    </span></label><!-- Tooltip Icon -->
+    
+            <textarea id="headers-${endpointIndex}" placeholder="Enter headers"></textarea><br>
+            <br />
+            <label for="method-${endpointIndex}">Method:</label>
+            <input type="text" id="method-${endpointIndex}" placeholder="Enter Method"><br>
+
+            <label for="contentType-${endpointIndex}">Content-Type:</label>
+            <input type="text" id="contentType-${endpointIndex}" placeholder="Enter Content-Type"><br>
+
+            <label for="maxRetry-${endpointIndex}">Max Retry:</label>
+            <input type="number" id="maxRetry-${endpointIndex}" placeholder="Enter Max Retry"><br>
+
+            <label for="retryDelayInMs-${endpointIndex}">Retry Delay in ms:</label>
+            <input type="number" id="retryDelayInMs-${endpointIndex}" placeholder="Enter Retry Delay in ms"><br>
+
+            <label for="retryStatusCodes-${endpointIndex}">Retry Status Codes:</label>
+            <input type="text" id="retryStatusCodes-${endpointIndex}" placeholder="Enter Retry Status Codes (comma separated)"><br>
+
+            <label for="retryWithDelayStatusCodes-${endpointIndex}">Retry with Delay Status Codes:</label>
+            <input type="text" id="retryWithDelayStatusCodes-${endpointIndex}" placeholder="Enter Retry with Delay Status Codes (comma separated)"><br>
+            
+            <button onclick="deleteEndpoint(${endpointIndex})">Delete Endpoint</button>
+        </div>
+    `;
+        // const endpointsDiv = document.getElementById("endpoints");
+        // Insert the new endpoint form into the DOM
+        endpointsDiv.insertAdjacentHTML("beforeend", endpointHtml);
+
+        endpointIndex++;
+      }
+
+      // Function to remove an endpoint
+      function deleteEndpoint(index) {
+        const endpointDiv = document.getElementById(`endpoint-${index}`);
+        if (endpointDiv) {
+          endpointDiv.remove();
+
+          // Also remove the endpoint from the dropdown
+          const dropdown = document.getElementById("endpointDropdown");
+          const optionToRemove = Array.from(dropdown.options).find(
+            (option) =>
+              option.value === endpointDiv.querySelector("h3").textContent
+          );
+          if (optionToRemove) {
+            dropdown.removeChild(optionToRemove);
+          }
+        }
+      }
+      // function generateYAML() {
+      //             let yamlContent = 'connector:\n';
+      //             yamlContent += `  host: ${document.getElementById('host').value}\n`;
+      //             yamlContent += `  port: ${document.getElementById('port').value}\n`;
+      //             yamlContent += `  protocol: ${document.getElementById('protocol').value}\n`;
+      //             yamlContent += `  maxConnections: ${document.getElementById('maxConnections').value}\n`;
+      //             yamlContent += `  minConnections: ${document.getElementById('minConnections').value}\n`;
+      //             yamlContent += `  authType: ${document.getElementById('authType').value}\n`;
+
+      //             const authType = document.getElementById('authType').value;
+      //             if (authType === 'basic') {
+      //                 yamlContent += `  auth:\n`;
+      //                 yamlContent += `    username: ${document.getElementById('username').value}\n`;
+      //                 yamlContent += `    password: ${document.getElementById('password').value}\n`;
+      //             } else if (authType === 'token') {
+      //                 yamlContent += `  auth:\n`;
+      //                 yamlContent += `    apiKey: ${document.getElementById('apiKey').value}\n`;
+      //             } else if (authType === 'header') {
+      //                 yamlContent += `  auth:\n`;
+      //                 yamlContent += `    headerKey: ${document.getElementById('headerKey').value}\n`;
+      //                 yamlContent += `    headerValue: ${document.getElementById('headerValue').value}\n`;
+      //             }
+
+      //             yamlContent += `  headers:\n`;
+      //             const headers = document.getElementById('headers').value.split('\n');
+      //             headers.forEach(header => {
+      //                 const [key, value] = header.split(':');
+      //                 yamlContent += `    ${key.trim()}: ${value.trim()}\n`;
+      //             });
+
+      //             yamlContent += `  sslCert: ${document.getElementById('sslCert').value}\n`;
+      //             yamlContent += `  debugEnabled: ${document.getElementById('debugEnabled').checked}\n`;
+      //             yamlContent += `  logRequestBody: ${document.getElementById('logRequestBody').checked}\n`;
+      //             yamlContent += `  logResponseBody: ${document.getElementById('logResponseBody').checked}\n`;
+      //             yamlContent += `  logSuccessResponseBody: ${document.getElementById('logSuccessResponseBody').checked}\n`;
+
+      //             yamlContent += '\nendpoints:\n';
+      //             for (let i = 0; i < endpointIndex; i++) {
+      //                 yamlContent += `  - path: ${document.getElementById(`path-${i}`).value}\n`;
+      //                 yamlContent += `    method: ${document.getElementById(`method-${i}`).value}\n`;
+      //                 yamlContent += `    headers:\n`;
+
+      //                 const endpointHeaders = document.getElementById(`headers-${i}`).value.split('\n');
+      //                 endpointHeaders.forEach(header => {
+      //                     const [key, value] = header.split(':');
+      //                     yamlContent += `      ${key.trim()}: ${value.trim()}\n`;
+      //                 });
+
+      //                 yamlContent += `    contentType: ${document.getElementById(`contentType-${i}`).value}\n`;
+      //                 yamlContent += `    maxRetry: ${document.getElementById(`maxRetry-${i}`).value}\n`;
+      //                 yamlContent += `    retryDelayInMs: ${document.getElementById(`retryDelayInMs-${i}`).value}\n`;
+
+      //                 const retryStatusCodes = document.getElementById(`retryStatusCodes-${i}`).value.split(',');
+      //                 yamlContent += `    retryStatusCodes: [${retryStatusCodes.map(code => code.trim()).join(', ')}]\n`;
+
+      //                 const retryWithDelayStatusCodes = document.getElementById(`retryWithDelayStatusCodes-${i}`).value.split(',');
+      //                 yamlContent += `    retryWithDelayStatusCodes: [${retryWithDelayStatusCodes.map(code => code.trim()).join(', ')}]\n`;
+      //             }
+
+      //             document.getElementById('yamlDisplay').value = yamlContent;
+      //         }
+
+      // function downloadYAML() {
+      //     const yamlContent = document.getElementById('yamlDisplay').value;
+      //     const blob = new Blob([yamlContent], { type: 'text/yaml' });
+      //     const link = document.createElement('a');
+      //     link.href = URL.createObjectURL(blob);
+      //     link.download = 'config.yaml';
+      //     link.click();
+      // }
+
+      //  function generateYAML() {
+      //     // Initialize the YAML content for the connector part
+      //     let yamlContent = 'connector:\n';
+      //     yamlContent += `  host: ${document.getElementById('host').value}\n`;
+      //     yamlContent += `  port: ${document.getElementById('port').value}\n`;
+      //     yamlContent += `  protocol: ${document.getElementById('protocol').value}\n`;
+      //     yamlContent += `  maxConnections: ${document.getElementById('maxConnections').value}\n`;
+      //     yamlContent += `  minConnections: ${document.getElementById('minConnections').value}\n`;
+      //     yamlContent += `  authType: ${document.getElementById('authType').value}\n`;
+
+      //     // Handle authentication types (basic, token, header)
+      //     const authType = document.getElementById('authType').value;
+      //     if (authType === 'basic') {
+      //         yamlContent += `  auth:\n`;
+      //         yamlContent += `    username: ${document.getElementById('username').value}\n`;
+      //         yamlContent += `    password: ${document.getElementById('password').value}\n`;
+      //     } else if (authType === 'token') {
+      //         yamlContent += `  auth:\n`;
+      //         yamlContent += `    apiKey: ${document.getElementById('apiKey').value}\n`;
+      //     } else if (authType === 'header') {
+      //         yamlContent += `  auth:\n`;
+      //         yamlContent += `    headerKey: ${document.getElementById('headerKey').value}\n`;
+      //         yamlContent += `    headerValue: ${document.getElementById('headerValue').value}\n`;
+      //     }
+
+      //     // Add connector headers
+      //     yamlContent += `  headers:\n`;
+      //     const headers = document.getElementById('headers').value.split('\n');
+      //     headers.forEach(header => {
+      //         const [key, value] = header.split(':');
+      //         if (key && value) {
+      //             yamlContent += `    ${key.trim()}: ${value.trim()}\n`;
+      //         }
+      //     });
+
+      //     yamlContent += `  sslCert: ${document.getElementById('sslCert').value}\n`;
+      //     yamlContent += `  debugEnabled: ${document.getElementById('debugEnabled').checked}\n`;
+      //     yamlContent += `  logRequestBody: ${document.getElementById('logRequestBody').checked}\n`;
+      //     yamlContent += `  logResponseBody: ${document.getElementById('logResponseBody').checked}\n`;
+      //     yamlContent += `  logSuccessResponseBody: ${document.getElementById('logSuccessResponseBody').checked}\n`;
+
+      //     // Add the endpoints section
+      //     yamlContent += '\nendpoints:\n';
+      //     for (let i = 0; i <= endpointIndex; i++) {
+      //         const pathElement = document.getElementById(`path-${i}`);
+      //         const methodElement = document.getElementById(`method-${i}`);
+      //         const headersElement = document.getElementById(`headers-${i}`);
+      //         const contentTypeElement = document.getElementById(`contentType-${i}`);
+      //         const maxRetryElement = document.getElementById(`maxRetry-${i}`);
+      //         const retryDelayInMsElement = document.getElementById(`retryDelayInMs-${i}`);
+      //         const retryStatusCodesElement = document.getElementById(`retryStatusCodes-${i}`);
+      //         const retryWithDelayStatusCodesElement = document.getElementById(`retryWithDelayStatusCodes-${i}`);
+
+      //         // Ensure that the fields exist before accessing them
+      //         if (pathElement && methodElement && headersElement) {
+      //             yamlContent += `  - path: ${pathElement.value}\n`;
+      //             yamlContent += `    method: ${methodElement.value}\n`;
+      //             yamlContent += `    headers:\n`;
+
+      //             const endpointHeaders = headersElement.value.split('\n');
+      //             endpointHeaders.forEach(header => {
+      //                 const [key, value] = header.split(':');
+      //                 if (key && value) {
+      //                     yamlContent += `      ${key.trim()}: ${value.trim()}\n`;
+      //                 }
+      //             });
+
+      //             yamlContent += `    contentType: ${contentTypeElement.value}\n`;
+      //             yamlContent += `    maxRetry: ${maxRetryElement.value}\n`;
+      //             yamlContent += `    retryDelayInMs: ${retryDelayInMsElement.value}\n`;
+
+      //             const retryStatusCodes = retryStatusCodesElement.value.split(',');
+      //             yamlContent += `    retryStatusCodes: [${retryStatusCodes.map(code => code.trim()).join(', ')}]\n`;
+
+      //             const retryWithDelayStatusCodes = retryWithDelayStatusCodesElement.value.split(',');
+      //             yamlContent += `    retryWithDelayStatusCodes: [${retryWithDelayStatusCodes.map(code => code.trim()).join(', ')}]\n`;
+      //         }
+      //     }
+
+      //     // Update the YAML display field
+      //     document.getElementById('yamlDisplay').value = yamlContent;
+      // }
+
+      // function downloadYAML() {
+      //     const yamlContent = document.getElementById('yamlDisplay').value;
+
+      //     // Only proceed with download if YAML content is generated
+      //     if (!yamlContent.trim()) {
+      //         alert('No YAML content generated to download!');
+      //         return;
+      //     }
+
+      //     const blob = new Blob([yamlContent], { type: 'text/yaml' });
+      //     const link = document.createElement('a');
+      //     link.href = URL.createObjectURL(blob);
+      //     link.download = 'config.yaml';
+      //     link.click();
+      // }
+      function generateYAML() {
+        let yamlContent = "ConnectorProperties:\n";
+
+        // Check and add host if the element exists
+        const hostElement = document.getElementById("host");
+        if (hostElement) {
+          yamlContent += `  host: ${hostElement.value}\n`;
+        }
+
+        // Check and add port if the element exists
+        const portElement = document.getElementById("port");
+        if (portElement) {
+          yamlContent += `  port: ${portElement.value}\n`;
+        }
+
+        // Check and add protocol if the element exists
+        const protocolElement = document.getElementById("protocol");
+        if (protocolElement) {
+          yamlContent += `  protocol: ${protocolElement.value}\n`;
+        }
+
+        // Similarly check for other fields (maxConnections, minConnections, etc.)
+        const maxConnectionsElement = document.getElementById("maxConnections");
+        if (maxConnectionsElement) {
+          yamlContent += `  maxConnections: ${maxConnectionsElement.value}\n`;
+        }
+
+        const minConnectionsElement = document.getElementById("minConnections");
+        if (minConnectionsElement) {
+          yamlContent += `  minConnections: ${minConnectionsElement.value}\n`;
+        }
+
+        const authTypeElement = document.getElementById("authType");
+        if (authTypeElement) {
+          yamlContent += `  authType: ${authTypeElement.value}\n`;
+        }
+
+        // Handle authentication fields based on selected authType
+        const authType = authTypeElement ? authTypeElement.value : null;
+        if (authType === "basic") {
+          yamlContent += `  auth:\n`;
+          const usernameElement = document.getElementById("username");
+          if (usernameElement) {
+            yamlContent += `    username: ${usernameElement.value}\n`;
+          }
+          const passwordElement = document.getElementById("password");
+          if (passwordElement) {
+            yamlContent += `    password: ${passwordElement.value}\n`;
+          }
+        } else if (authType === "token") {
+          yamlContent += `  auth:\n`;
+          const apiKeyElement = document.getElementById("apiKey");
+          if (apiKeyElement) {
+            yamlContent += `    apiKey: ${apiKeyElement.value}\n`;
+          }
+        } else if (authType === "header") {
+          yamlContent += `  auth:\n`;
+          const headerKeyElement = document.getElementById("headerKey");
+          if (headerKeyElement) {
+            yamlContent += `    headerKey: ${headerKeyElement.value}\n`;
+          }
+          const headerValueElement = document.getElementById("headerValue");
+          if (headerValueElement) {
+            yamlContent += `    headerValue: ${headerValueElement.value}\n`;
+          }
+        }
+
+        // Collect headers if the element exists
+        const headersElement = document.getElementById("headers");
+        if (headersElement) {
+          yamlContent += `  headers:\n`;
+          const headers = headersElement.value.split("\n");
+          headers.forEach((header) => {
+            const [key, value] = header.split(":");
+            if (key && value) {
+              yamlContent += `    ${key.trim()}: ${value.trim()}\n`;
+            }
+          });
+        }
+
+        // Add other connector properties
+        const sslCertElement = document.getElementById("sslCert");
+        if (sslCertElement) {
+          yamlContent += `  sslCert: ${sslCertElement.value}\n`;
+        }
+
+        yamlContent += `  debugEnabled: ${
+          document.getElementById("debugEnabled")?.checked || false
+        }\n`;
+        yamlContent += `  logRequestBody: ${
+          document.getElementById("logRequestBody")?.checked || false
+        }\n`;
+        yamlContent += `  logResponseBody: ${
+          document.getElementById("logResponseBody")?.checked || false
+        }\n`;
+        yamlContent += `  logSuccessResponseBody: ${
+          document.getElementById("logSuccessResponseBody")?.checked || false
+        }\n`;
+
+        // Handle endpoints
+        yamlContent += "\nEndPointProperties:\n";
+        for (let i = 0; i < endpointIndex; i++) {
+          const endpointDiv = document.getElementById(`endpoint-${i}`);
+          if (!endpointDiv) continue; // Skip if the endpoint has been deleted
+          const name = document
+            .getElementById(`endpoint-${i}`)
+            .getElementsByTagName(`h3`)[0].textContent;
+          const pathElement = document.getElementById(`path-${i}`);
+          const methodElement = document.getElementById(`method-${i}`);
+          const headersElement = document.getElementById(`headers-${i}`);
+          const contentTypeElement = document.getElementById(
+            `contentType-${i}`
+          );
+          const maxRetryElement = document.getElementById(`maxRetry-${i}`);
+          const retryDelayInMsElement = document.getElementById(
+            `retryDelayInMs-${i}`
+          );
+          const retryStatusCodesElement = document.getElementById(
+            `retryStatusCodes-${i}`
+          );
+          const retryWithDelayStatusCodesElement = document.getElementById(
+            `retryWithDelayStatusCodes-${i}`
+          );
+          yamlContent += `${name}\n`;
+
+          // Ensure that the fields exist before accessing them
+          if (pathElement && methodElement && headersElement) {
+            yamlContent += `    path: ${pathElement.value}\n`;
+            yamlContent += `    method: ${methodElement.value}\n`;
+            yamlContent += `    headers:\n`;
+
+            const endpointHeaders = headersElement.value.split("\n");
+            endpointHeaders.forEach((header) => {
+              const [key, value] = header.split(":");
+              if (key && value) {
+                yamlContent += `      ${key.trim()}: ${value.trim()}\n`;
+              }
+            });
+
+            yamlContent += `    contentType: ${
+              contentTypeElement?.value || ""
+            }\n`;
+            yamlContent += `    maxRetry: ${maxRetryElement?.value || ""}\n`;
+            yamlContent += `    retryDelayInMs: ${
+              retryDelayInMsElement?.value || ""
+            }\n`;
+
+            const retryStatusCodes =
+              retryStatusCodesElement?.value.split(",") || [];
+            yamlContent += `    retryStatusCodes: [${retryStatusCodes
+              .map((code) => code.trim())
+              .join(", ")}]\n`;
+
+            const retryWithDelayStatusCodes =
+              retryWithDelayStatusCodesElement?.value.split(",") || [];
+            yamlContent += `    retryWithDelayStatusCodes: [${retryWithDelayStatusCodes
+              .map((code) => code.trim())
+              .join(", ")}]\n`;
+          }
+        }
+
+        // Display YAML content
+        document.getElementById("yamlDisplay").value = yamlContent;
+      }
+
+      function downloadYAML() {
+        const yamlContent = document.getElementById("yamlDisplay").value;
+
+        if (!yamlContent.trim()) {
+          alert("No YAML content generated to download!");
+          return;
+        }
+
+        const blob = new Blob([yamlContent], { type: "text/yaml" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "config.yaml";
+        link.click();
+      }
+
+      function navigateToEndpoint() {
+        const dropdown = document.getElementById("endpointDropdown");
+        const selectedEndpoint = dropdown.value;
+
+        // Scroll to the selected endpoint if it exists
+        const endpointDivs = document.querySelectorAll(
+          `div[id^='endpoint-'] h3`
+        );
+        let found = false;
+
+        endpointDivs.forEach((element) => {
+          if (element.textContent === selectedEndpoint) {
+            element.scrollIntoView({ behavior: "smooth" });
+            found = true;
+          }
+        });
+
+        // If the endpoint is not found and "New endpoint" is selected, prompt to add a new one
+        if (!found && selectedEndpoint === "New endpoint") {
+          addEndpoint();
+        }
+      }
+    </script>
+  </body>
+</html>

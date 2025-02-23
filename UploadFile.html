@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>YAML Generator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"></script>
+    <style>
+       body {
+        font-family: "Arial", sans-serif;
+        background: linear-gradient(135deg, #f5f7fa, #89abe2);
+        color: #333;
+        padding: 20px;
+        text-align: center;
+      }
+
+      h1,
+      h2 {
+        color: #4a69bd;
+        text-transform: uppercase;
+      }
+
+      h3 {
+        color: #1e3799;
+      }
+
+      h4{
+        color:#1e3799;
+        text-align: left;
+        font-size: 20px;
+        display: flex;            /* Makes the header a flex container */
+        align-items: center;     /* Aligns items vertically centered */
+        justify-content: space-between; /* Optional: space between the header and the button */
+        margin-bottom: 10px; 
+      }
+      form{
+        background-color: #ffffff;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+      }
+      label {
+        display: inline-block;
+        width: 150px;
+        text-align: left;
+        
+       
+      }
+
+      input,
+      textarea,
+      select {
+        padding: 10px;
+        border: 2px solid #141c26;
+        border-radius: 5px;
+        width: 60%;
+        margin-bottom: 20px;
+        transition: border 0.3s ease;
+        margin-left:100px;
+      }
+
+      input:focus,
+      textarea:focus,
+      select:focus {
+        border-color: #1e3799;
+        outline: none;
+      }
+
+      button {
+        background-color: #4a69bd;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        padding: 10px 20px;
+        cursor: pointer;
+        margin-top: 30px;
+        margin-bottom: 5px;
+        transition: background-color 0.3s ease;
+        margin-left: 10px;  
+      
+      }
+
+      button:hover {
+        background-color: rgb(82, 154, 82);
+        box-shadow: 0 12px 16px 0 rgba(0, 0, 0, 0.24),
+          0 17px 50px 0 rgba(0, 0, 0, 0.19);
+      }
+
+      /* Animations */
+      #yaml-output {
+        background-color: #f8f9fa;
+            border: 2px solid #dfe4ea;
+            border-radius: 10px;
+            padding: 10px;
+            margin-top: 10px;
+            transition: all 0.3s ease-in-out;
+            height: 200px;
+            overflow-y: scroll;
+            text-align: left;
+      }
+      #connector-properties{
+        text-align: left;
+      }
+      #auth\.type{
+        max-width: 720.912px;
+        height: 39px;
+        padding: 10px;
+        border: 2px solid black;
+        border-radius: 5px;
+        margin-bottom: 20px;
+        transition: border 0.3s ease;
+        margin-left:100px;
+        width: 100%; /* Adjust the percentage or use a fixed width like 400px if necessary */
+        box-sizing: border-box;
+        
+      }
+      
+      #newFileBtn{
+        position: static; 
+        top: 20px; 
+        right: 20px;
+        background-color: #4a69bd;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        padding: 10px 20px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        z-index: 0;
+      }
+    
+/* Responsive Design */
+      @media (max-width: 768px) {
+        input,
+        textarea,
+        select {
+          width: 100%;
+          text-align:left;
+        }
+
+        label {
+          display: block;
+          text-align: center;
+          margin-right: 300px;
+        }
+      }
+
+      .endpoint-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+      .remove-btn {
+        background-color: #4a69bd;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        padding: 10px 20px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        position: absolute;
+        right: 32px;
+      }
+      .endpoint-button {
+        display: flex;
+        justify-content: space-between;
+        align-items: center; /* vertically center the button with the text */
+        margin-bottom: 10px; /* spacing between header and form fields */
+      }
+
+      .remove-btn:hover {
+        background-color: #e17f7f;
+        box-shadow: 0 12px 16px 0 rgba(0, 0, 0, 0.24),
+          0 17px 50px 0 rgba(0, 0, 0, 0.19);
+      }
+      .tooltip {
+  position: relative;
+  display: inline-block;
+}
+.tooltip .tooltiptext {
+  visibility: hidden;
+  width: 220px;
+  background-color: #555;
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  padding: 5px;
+  position: absolute;
+  z-index: 1;
+  bottom: 125%; /* Adjust as needed */
+  left: 50%;
+  margin-left: -110px;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.tooltip .tooltiptext::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #555 transparent transparent transparent;
+}
+
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+  opacity: 1;
+}
+
+.info-icon {
+  font-size: 14px;
+  font-weight: bold;
+  color: #1e3799;
+  background-color: #e0e0e0;
+  border-radius: 50%;
+  padding: 2px 6px;
+  cursor: pointer;
+}
+    </style>
+  </head>
+  <body>
+    <button id="newFileBtn" onclick="createNewFile()">New File Creation</button>
+
+      <h2>Upload Connector Config File To Edit</h2>
+      <input
+        type="file"
+        id="yaml-file-input"
+        accept=".yaml, .yml"
+        onchange="loadYamlFile(event)"
+      />
+
+      <h2>Connector Properties</h2>
+      <form id="connector-properties"></form>
+      <!-- <div id="connector-properties"></div> -->
+      <div id="auth-fields"></div>
+      <button id="add-endpoint-btn" onclick="showPropertiesDropdown()">
+      Select Endpoint to Edit
+      </button>
+     
+      <div id="properties-dropdown" style= "display: none">
+        <select id="properties-list" onchange="handleDropdownChange(this.value)"> 
+          <option value="">Select a Property</option>
+          <!-- Options will be added dynamically here -->
+          <option value="new-endpoint">Add New Endpoint</option>
+        </select>
+      </div> 
+      
+        
+    
+      <h2>Endpoints</h2> 
+      <form id="endpoints"></form>
+      <button id="createNewEndpointButton" on click="CreateNewEndpoint()">Create New Endpoint</button>
+    
+      <h2>Generated YAML</h2>
+      <pre id="yaml-output"></pre>
+      <button  onclick="generateYaml()">Generate YAML</button>
+      <button id="download-yaml" onclick="downloadYamlFile()">
+        Download YAML
+      </button>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
